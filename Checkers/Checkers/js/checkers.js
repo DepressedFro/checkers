@@ -1,6 +1,9 @@
 // checkers.js
 
 /** The state of the game */
+const readline = require("readline");
+
+
 var state =
 {
 
@@ -11,9 +14,10 @@ var state =
       [null, 'w', null, 'w', null, 'w', null, 'w', null, 'w'],
       ['w', null, 'w', null, 'w', null, 'w', null, 'w', null],
       [null, 'w', null, 'w', null, 'w', null, 'w', null, 'w'],
+      ['w', null, 'w', null, 'w', null, 'w', null, 'w', null],
       [null, null, null, null, null, null, null, null, null, null],
       [null, null, null, null, null, null, null, null, null, null],
-      [null, null, null, null, null, null, null, null, null, null],
+      [null, 'b', null, 'b', null, 'b', null, 'b', null, 'b'],
       ['b', null, 'b', null, 'b', null, 'b', null, 'b', null],
       [null, 'b', null, 'b', null, 'b', null, 'b', null, 'b'],
       ['b', null, 'b', null, 'b', null, 'b', null, 'b', null]
@@ -100,19 +104,19 @@ function copyJumps(jumps) {
 function checkJump(moves, jumps, piece, x, y) {
     switch (piece) {
         case 'b': // black can only move down the board diagonally
-            checkLanding(moves, copyJumps(jumps), x - 1, y + 1, x - 2, y + 2);
-            checkLanding(moves, copyJumps(jumps), x + 1, y + 1, x + 2, y + 2);
+            checkLanding(moves, copyJumps(jumps), piece, x - 1, y + 1, x - 2, y + 2);
+            checkLanding(moves, copyJumps(jumps), piece, x + 1, y + 1, x + 2, y + 2);
             break;
         case 'w':  // white can only move up the board diagonally
-            checkLanding(moves, copyJumps(jumps), x - 1, y - 1, x - 2, y - 2);
-            checkLanding(moves, copyJumps(jumps), x + 1, y - 1, x + 2, y - 2);
+            checkLanding(moves, copyJumps(jumps), piece, x - 1, y - 1, x - 2, y - 2);
+            checkLanding(moves, copyJumps(jumps), piece, x + 1, y - 1, x + 2, y - 2);
             break;
         case 'bk': // kings can move diagonally any direction
         case 'wk': // kings can move diagonally any direction
-            checkLanding(moves, copyJumps(jumps), x - 1, y + 1, x - 2, y + 2);
-            checkLanding(moves, copyJumps(jumps), x + 1, y + 1, x + 2, y + 2);
-            checkLanding(moves, copyJumps(jumps), x - 1, y - 1, x - 2, y - 2);
-            checkLanding(moves, copyJumps(jumps), x + 1, y - 1, x + 2, y - 2);
+            checkLanding(moves, copyJumps(jumps), piece, x - 1, y + 1, x - 2, y + 2);
+            checkLanding(moves, copyJumps(jumps), piece, x + 1, y + 1, x + 2, y + 2);
+            checkLanding(moves, copyJumps(jumps), piece, x - 1, y - 1, x - 2, y - 2);
+            checkLanding(moves, copyJumps(jumps), piece, x + 1, y - 1, x + 2, y - 2);
             break;
     }
 }
@@ -211,6 +215,7 @@ function nextTurn() {
 
 function printBoard() {
     //print statments not yet javacript friendly, but the logic is correct
+    /*
     for (y = 0; y < 10; y++) {
         for (x = 0; x < 10; x++) {
             if (state.board[y][x] === null) {
@@ -223,8 +228,56 @@ function printBoard() {
         }
         System.out.println();
     }
+    */
+    console.log("   a b c d e f g h i j");
+    state.board.forEach(function (row, index)
+    {
+        var ascii = row.map(function (square) {
+            if (!square)
+            {
+                return '_';
+            }
+            else
+            {
+                return square;
+            }
+        }).join("|");
+        console.log(index, ascii);
+    })
 }
 
-function main() {
-
+function main()
+{
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+    //print board
+    printBoard();
+    //offer instructions
+    console.log(state.turn + "'s turn");
+    rl.question("Pick a piece to move, (letter, number)", function (answer)
+    {
+        var match = /([a-j]),?\s?([0-9])/.exec(answer);
+        if (match)
+        {
+            var x = match[1].charCodeAt(0) - "a".charCodeat(0);
+            var y = parseInt(match[2]);
+            var piece = state.board[y][x];
+            var moves = getLegalMoves(piece, x, y);
+            moves.forEach(function (move)
+            {
+                if (move.slide)
+                {
+                    console.log("You can slide to " + String.fromCharacterCode(97 + x) + "," + y);
+                }
+                else
+                {
+                    console.log
+                }
+            })
+        }
+    });
 }
+
+main();
