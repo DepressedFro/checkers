@@ -34,7 +34,19 @@
     background-color: ivory;
 }
 
-.checker-b
+.checker-b, .checker-bk
 {
     background-color: black;
+}
+
+.square.highlight{
+    background-color: yellow; !important;
+}
+
+.square.droptarget{
+    background-color: orange;
+}
+
+.checker.highlight{
+
 }

@@ -36,12 +36,12 @@ function getLegalMoves(piece, x, y)
         case 'b': // black can only move down the board diagonally
             checkSlide(moves, x - 1, y - 1);
             checkSlide(moves, x + 1, y - 1);
-            checkJump(moves, { captures: [], landings: [] }, piece, x, y);
+            checkJump(moves, { captures: [], landings: [], x: x, y: y }, piece, x, y);
             break;
         case 'w':  // white can only move up the board diagonally
             checkSlide(moves, x - 1, y + 1);
             checkSlide(moves, x + 1, y + 1);
-            checkJump(moves, { captures: [], landings: [] }, piece, x, y);
+            checkJump(moves, { captures: [], landings: [], x: x, y: y }, piece, x, y);
             break;
         case 'bk': // kings can move diagonally any direction
         case 'wk': // kings can move diagonally any direction
@@ -49,7 +49,7 @@ function getLegalMoves(piece, x, y)
             checkSlide(moves, x + 1, y + 1);
             checkSlide(moves, x - 1, y - 1);
             checkSlide(moves, x + 1, y - 1);
-            checkJump(moves, { captures: [], landings: [] }, piece, x, y);
+            checkJump(moves, { captures: [], landings: [], x: x, y: y }, piece, x, y);
             break;
     }
     return moves;
@@ -82,6 +82,8 @@ function copyJumps(jumps)
     // Use Array.prototype.slice() to create a copy
     // of the landings and captures array.
     var newJumps = {
+        x: jumps.x,
+        y: jumps.y,
         landings: jumps.landings.slice(),
         captures: jumps.captures.slice()
     }
@@ -137,13 +139,17 @@ function checkJump(moves, jumps, piece, x, y)
   */
 function checkLanding(moves, jumps, piece, cx, cy, lx, ly)
 {
+    // Check that we're not jumping back to our starting position
+    if (lx == jumps.x && ly == jumps.y) return;
     // Check landing square is on grid
     if (lx < 0 || lx > 9 || ly < 0 || ly > 9) return;
     // Check landing square is unoccupied
     if (state.board[ly][lx]) return;
-    // Check capture square is occuped by opponent
-    if ((piece === 'b' || piece === 'bk') && !(state.board[cy][cx] === 'w' || state.board[cy][cx] === 'wk')) return;
-    if ((piece === 'w' || piece === 'wk') && !(state.board[cy][cx] === 'b' || state.board[cy][cx] === 'bk')) return;
+    // Check capture square is occupied by opponent
+    if (state.turn === 'b' && !(state.board[cy][cx] === 'w' || state.board[cy][cx] === 'wk')) return;
+    if (state.turn === 'w' && !(state.board[cy][cx] === 'b' || state.board[cy][cx] === 'bk')) return;
+    // Check that we haven't landed on this square previously
+    if (0 < jumps.landings.indexOf(function (landing) { return landing.x == lx && landing.y == ly; })) return;
     // legal jump! add it to the moves list
     jumps.captures.push({ x: cx, y: cy });
     jumps.landings.push({ x: lx, y: ly });
@@ -215,6 +221,20 @@ function nextTurn()
 /** @function handleCheckerClick
     *click handler for checker
     */
+
+function clearHighlights()
+{
+    var highlighted = document.querySelectorAll(".highlight");
+    highlighted.forEach(function(elem){
+        elem.classList.remove("highlight");
+        elem.draggable = false;
+        elem.ondragover = undefined;
+        elem.ondragleave = undefined;
+        elem.ondrop = undefined;
+        elem.classList.remove("droptarget");
+    })
+}
+
 function handleCheckerclick(event)
 {
     event.preventDefault();
@@ -223,6 +243,38 @@ function handleCheckerclick(event)
     var y = parseInt(parentId.CharAt(9));
     var moves = getLegalMoves(state.board[y][x], x, y);
     
+}
+
+function handleDragOver(event)
+{
+    event.preventDefault();
+    event.target.classList.add("droptarget");
+}
+
+function handleDragLeaveSquare(event)
+{
+    event.preventDefault();
+    event.target.classList.remove("droptarget");
+}
+
+function handleDropSquare(event)
+{
+    event.preventDefault();
+    var parentId = (event.target.parent.id);
+    var x = parseInt(parentId.charAt(7));
+    var y = parseInt(parentId.charAt(9));
+    applyMove(x, y, event.target.dataset.move)
+    switch (event.target.dataset.move.type)
+    {
+        case "slide":
+           var checker = event.target.parent.removeChild(event.target);
+           event.currentTarget.appendChild(checker);
+    }
+}
+
+function handleCheckerClick()
+{
+
 }
 /** @function setup
 
