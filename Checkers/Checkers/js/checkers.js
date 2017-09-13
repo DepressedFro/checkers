@@ -19,6 +19,8 @@ var state = {
     captures: { w: 0, b: 0 }
 }
 
+var ctx;
+
 /** @function getLegalMoves
   * returns a list of legal moves for the specified
   * piece to make.
@@ -218,92 +220,63 @@ function nextTurn()
     if (state.turn === 'b') state.turn = 'w';
     else state.turn = 'b';
 }
-/** @function handleCheckerClick
-    *click handler for checker
-    */
 
-function clearHighlights()
+function renderBoard()
 {
-    var highlighted = document.querySelectorAll(".highlight");
-    highlighted.forEach(function(elem){
-        elem.classList.remove("highlight");
-        elem.draggable = false;
-        elem.ondragover = undefined;
-        elem.ondragleave = undefined;
-        elem.ondrop = undefined;
-        elem.classList.remove("droptarget");
-    })
-}
-
-function handleCheckerclick(event)
-{
-    event.preventDefault();
-    var parentId = event.target.parentElement.id;
-    var x = parseInt(parentId.CharAt(7));
-    var y = parseInt(parentId.CharAt(9));
-    var moves = getLegalMoves(state.board[y][x], x, y);
-    
-}
-
-function handleDragOver(event)
-{
-    event.preventDefault();
-    event.target.classList.add("droptarget");
-}
-
-function handleDragLeaveSquare(event)
-{
-    event.preventDefault();
-    event.target.classList.remove("droptarget");
-}
-
-function handleDropSquare(event)
-{
-    event.preventDefault();
-    var parentId = (event.target.parent.id);
-    var x = parseInt(parentId.charAt(7));
-    var y = parseInt(parentId.charAt(9));
-    applyMove(x, y, event.target.dataset.move)
-    switch (event.target.dataset.move.type)
+    if (!ctx)
     {
-        case "slide":
-           var checker = event.target.parent.removeChild(event.target);
-           event.currentTarget.appendChild(checker);
+        return;
     }
-}
-
-function handleCheckerClick()
-{
-
-}
-/** @function setup
-
-*/
-function setup()
-{
-    var board = document.createElement("section");
-    board.id = "game-board";
-    document.body.appendChild(board);
-    for(var y = 0; y < state.board.length; y++)
+    for(var y = 0; y < 10; y++)
     {
-        for(var x = 0; x < state.board[y].length; x++)
+        for (var x = 0; x < 10; x++)
         {
-            var square = document.createElement("div");
-            square.id = "square-" + x + "-";
-            square.classList.add("square");
-            if ((y + x) % 2 === 1)
+            if((x + y) % 2 ==1)
             {
-                square.classList.add("black");
+                ctx.fillStyle = "#222";
+                ctx.fillRect(x * 100, y * 100, 100, 100);
             }
-            board.appendChild(square);
-            if(state.board[y][x])
+            if (state.board[y][x] != null)
             {
-                var checker = document.createElement("div");
-                checker.checkList.add("checker");
-                checker.classList.add("checker-" + state.board[y][x]);
-                square.appendChild(checker);
+                ctx.beginPath();
+                ctx.strokeStyle = "yellow";
+                if (state.board[y][x].charAt(0) === "w")
+                {
+                    ctx.fillStyle = "#fff";
+                }
+                else
+                {
+                    ctx.fillStyle = "#000";
+                }
+                ctx.arc(x * 100 + 50, y * 100 + 50, 40, 0, Math.PI * 2);
+                ctx.fill();
             }
         }
     }
 }
+
+function hoverOverChecker(event)
+{
+    var x = Math.floor(event.clientX / 100);
+    var y = Math.floor(event.clientY / 100);
+    if(state.board[y][x] && state.board[y][x].charAt(0) === state.turn)
+    {
+        ctx.strokeStyle = "yellow";
+        ctx.beginPath();
+        ctx.arc(x * 100 + 50, y * 100 + 50, 40, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+}
+
+function setup()
+{
+    var canvas = document.createElement("canvas");
+    canvas.width =  1000;
+    canvas.height = 1000;
+    canvas.onmousemove = hoverOverChecker;
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext("2d");
+    renderBoard(ctx);
+}
+
 setup();
